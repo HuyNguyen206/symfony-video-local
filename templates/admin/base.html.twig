@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+{% block title %}
+Admin dashboard
+{% endblock %}
+
+{% block menu %}
+  {% include 'admin/includes/_header.html.twig' %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'admin/includes/_footer.html.twig' %}
+{% endblock %}
+
+{% block custom_css %}
+    <link href="{{ asset('assets/css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+
+{% block main %}
+
+{% endblock %}
+
+
