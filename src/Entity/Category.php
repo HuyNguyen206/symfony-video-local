@@ -9,9 +9,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\Table(name: 'categories')]
+//#[UniqueEntity('name')]
 class Category
 {
     use Timestamp;
@@ -24,6 +26,7 @@ class Category
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'subCategories')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parentCategory = null;
 
     #[ORM\OneToMany(mappedBy: 'parentCategory', targetEntity: self::class, cascade: ['persist'])]
@@ -73,6 +76,14 @@ class Category
     public function getSubCategories(): Collection
     {
         return $this->subCategories;
+    }
+
+    public function getSubcategoriesImprove($entityManager)
+    {
+        $query = $entityManager->createQuery('SELECT c, s FROM App\Entity\Category c JOIN c.subCategories s where c.id = :id');
+        $query->setParameter('id', $this->id);
+
+        return $query->getResult();
     }
 
     public function addSubCategory(self $subCategory): static

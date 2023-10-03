@@ -4,24 +4,20 @@
 {% block main %}
 <h2>Editing category</h2>
 
-<form action="#" method="POST">
-    <input type="text" class="form-control is-invalid" id="validationServer01" placeholder="Category name" value="Funny"
+<form action="{{ path('categories.update', {'id' : category.id}) }}" method="POST">
+    <input type="hidden" name="_method" value="PUT">
+    <input type="text" name="name" class="form-control is-invalid" id="validationServer01" placeholder="Category name" value="{{ category.name }}"
         required>
     <br>
     <label for="inlineFormCustomSelect">Parent:</label>
-    <select class="custom-select mr-sm-2" id="inlineFormCustomSelect">
-        <option value="1">Funny</option>
-        <option value="1">--For kids</option>
-        <option value="1">--For adults</option>
-        <option value="1">----For 60+</option>
-        <option value="2">Scary</option>
-        <option value="3">Motivating</option>
+    <select class="custom-select mr-sm-2" id="inlineFormCustomSelect" name="parent_category_id">
+        <option value="" {% if category.parentCategory is null %} selected {% endif %}>--No parent--</option>
+        {% include 'admin/includes/_edit_admin_category.html.twig' with  {'subCategories': results, 'index': 0, 'parent_id': category.parentCategory.id is defined ? category.parentCategory.id, 'isEdit': true} only %}
     </select>
-    <div class="invalid-feedback">
-        Category already exists!
-    </div>
+{#    <div class="invalid-feedback">#}
+{#        Category already exists!#}
+{#    </div>#}
     <button class="btn btn-primary mt-3" type="submit">Save</button>
-
 </form>
 
 {%  endblock %}

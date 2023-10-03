@@ -10,7 +10,7 @@ class CategoryFixture extends BaseFixture
     public function load(ObjectManager $manager): void
     {
         $mainCategory = [
-            'Graphic Card' => ['AMD', 'Nvidia'],
+            'Graphic Card' => ['AMD', 'Nvidia' => ['RTX 4090', 'RTX 4090 Ti']],
             'Mouse' => ['HP', 'Razor'],
             'Keyboard' => ['Boston', 'China town'],
             'Monitor' => ['LG', 'Samsung'],
@@ -19,10 +19,23 @@ class CategoryFixture extends BaseFixture
         foreach ($mainCategory as $name => $subCategories) {
             $category1 = new Category();
             $category1->setName($name);
-            foreach ($subCategories as $subCategoryName) {
-                $subCategory = new Category();
-                $subCategory->setName($subCategoryName);
-                $category1->addSubCategory($subCategory);
+            foreach ($subCategories as $nameSub => $subCategoryName) {
+                if (!is_array($subCategoryName)) {
+                    $subCategory = new Category();
+                    $subCategory->setName($subCategoryName);
+                    $category1->addSubCategory($subCategory);
+                } else {
+                    $category2 = new Category();
+                    $category2->setName($nameSub);
+                    foreach ($subCategoryName as $grandChild) {
+                        $subCategory = new Category();
+                        $subCategory->setName($grandChild);
+                        $category2->addSubCategory($subCategory);
+                    }
+                    $category1->addSubCategory($category2);
+                    $manager->persist($category2);
+                }
+
             }
             $manager->persist($category1);
         }

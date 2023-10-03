@@ -8,43 +8,7 @@
 </style>
 
 <h2>Categories list</h2>
-
-<ul class="fa-ul text-left">
-    <li><i class="fa-li fa fa-arrow-right"></i>Funny <a href="edit_category.php">edit</a> <a onclick="return confirm('Are you sure?');"
-                href="#">delete</a></li>
-    <ul class="fa-ul text-left">
-        <li><i class="fa-li fa fa-arrow-right"></i>For kids <a href="edit_category.php">edit</a> <a onclick="return confirm('Are you sure?');"
-                href="#">delete</a></li>
-        <li><i class="fa-li fa fa-arrow-right"></i>For adults <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-                href="#">delete</a></li>
-        <ul class="fa-ul text-left">
-            <li><i class="fa-li fa fa-arrow-right"></i>Strange <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-                    href="#">delete</a></li>
-        </ul>
-    </ul>
-    <li><i class="fa-li fa fa-arrow-right"></i>Scary <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-    <li><i class="fa-li fa fa-arrow-right"></i>Unbelievable <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-    <li><i class="fa-li fa fa-arrow-right"></i>Inspirational <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-    <li><i class="fa-li fa fa-arrow-right"></i>Motivating <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-    <li><i class="fa-li fa fa-arrow-right"></i>Surprising <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-    <li><i class="fa-li fa fa-arrow-right"></i>Sad</li>
-    <ul class="fa-ul text-left">
-        <li><i class="fa-li fa fa-arrow-right"></i>Strange <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-                href="#">delete</a></li>
-        <ul class="fa-ul text-left">
-            <li><i class="fa-li fa fa-arrow-right"></i>Boring <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-                    href="#">delete</a></li>
-        </ul>
-    </ul>
-    <li><i class="fa-li fa fa-arrow-right"></i>Relaxing <a href="{{ path('categories.edit') }}">edit</a> <a onclick="return confirm('Are you sure?');"
-            href="#">delete</a></li>
-</ul>
-
+    {% include 'admin/includes/_sub_admin_category.html.twig' with  {'subCategories': results} only %}
 <form action="#" method="POST">
     <div class="col-md-4 mb-3">
         <label for="validationServer01">Add new category</label>
@@ -53,12 +17,7 @@
         <br>
 	    <label for="inlineFormCustomSelect">Parent:</label>
         <select class="custom-select mr-sm-2" id="inlineFormCustomSelect">
-            <option value="1">Funny</option>
-            <option value="1">--For kids</option>
-            <option value="1">--For adults</option>
-            <option value="1">----For 60+</option>
-            <option value="2">Scary</option>
-            <option value="3">Motivating</option>
+            {% include 'admin/includes/_edit_admin_category.html.twig' with  {'subCategories': results, 'index': 0, 'isEdit': false} only %}
         </select>
         <div class="invalid-feedback">
             Category already exists!

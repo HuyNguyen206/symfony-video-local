@@ -1,0 +1,14 @@
+{% for category in subCategories %}
+    <option {% if parent_id is defined and parent_id == category.id %} selected {% endif %} {% if index == 0 %} style="font-weight: bold" {% endif %}
+            value="{{ category.id }}">{{ generateHyphen(category.name, index) }}
+    </option>
+    {% if category.getSubCategories()|length > 0 %}
+        {% if isEdit == true %}
+            {% include 'admin/includes/_edit_admin_category.html.twig' with  {'subCategories': category.getSubCategories(), 'index': index + 1, 'parent_id' : parent_id, 'isEdit': isEdit} only %}
+        {% else %}
+            {% include 'admin/includes/_edit_admin_category.html.twig' with  {'subCategories': category.getSubCategories(), 'index': index + 1, 'isEdit': isEdit} only %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+
