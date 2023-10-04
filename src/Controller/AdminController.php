@@ -9,11 +9,12 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('admin')]
 class AdminController extends AbstractController
 {
-    public function __construct(protected EntityManagerInterface $entityManager)
+    public function __construct(protected EntityManagerInterface $entityManager, protected ValidatorInterface $validator)
     {
     }
 
@@ -29,7 +30,7 @@ class AdminController extends AbstractController
         return $this->render('front/payment.html.twig');
     }
 
-    #[Route('/categories', name: 'categories')]
+    #[Route('/categories', name: 'categories', methods: 'GET')]
     public function categories(EntityManagerInterface $entityManager, EagerService $eagerService): Response
     {
         $categories = $entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
@@ -54,7 +55,7 @@ class AdminController extends AbstractController
         return $this->render('admin/videos.html.twig');
     }
 
-    #[Route('/categories/{id}', name: 'categories.edit')]
+    #[Route('/categories/{id}', name: 'categories.edit', methods: 'GET')]
     public function editCategory(int $id, EagerService $eagerService): Response
     {
         $categories = $this->entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
@@ -81,12 +82,28 @@ class AdminController extends AbstractController
     #[Route('/categories/{id}', name: 'categories.update', methods: 'PUT')]
     public function update(Category $category, EagerService $eagerService, Request $request): Response
     {
-        $category->setName($request->request->name);
-        $category->parent_category_id = $request->request->parent_category_id;
+        $category->setName($request->request->get('name'));
+        $category->setParentCategory($this->entityManager->getRepository(Category::class)->find($request->request->get('parent_category_id')));
         $this->entityManager->persist($category);
         $this->entityManager->flush();
 
         return $this->redirectToRoute('categories.update', ['id' => $category->getId()]);
+    }
+
+    #[Route('/categories', name: 'categories.store', methods: 'POST')]
+    public function store(Request $request): Response
+    {
+        $category = new Category();
+        $category->setName($request->request->get('name'));
+        $parentId = $request->request->get('parent_category_id');
+        if ($parentId) {
+            $category->setParentCategory($this->entityManager->getRepository(Category::class)->find($request->request->get('parent_category_id')));
+        }
+        $errors = $this->validator->validate($category);
+        $this->entityManager->persist($category);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('categories');
     }
 
     #[Route('/categories/{id}', name: 'categories.delete', methods: 'DELETE')]

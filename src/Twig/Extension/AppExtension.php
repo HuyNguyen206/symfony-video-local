@@ -22,7 +22,7 @@ class AppExtension extends AbstractExtension
 
     public function slugify($string)
     {
-        return str_replace(" ", "-", trim($string));
+        return mb_strtolower(str_replace(" ", "-", trim($string)));
     }
 
 }

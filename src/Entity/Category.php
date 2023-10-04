@@ -10,6 +10,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Gedmo\Mapping\Annotation as Gedmo;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\Table(name: 'categories')]
@@ -23,6 +24,7 @@ class Category
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
+    #[NotBlank(message: 'The name can not be null')]
     private ?string $name = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'subCategories')]
@@ -32,7 +34,7 @@ class Category
     #[ORM\OneToMany(mappedBy: 'parentCategory', targetEntity: self::class, cascade: ['persist'])]
     private Collection $subCategories;
 
-    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Video::class)]
+    #[ORM\OneToMany(mappedBy: 'category', targetEntity: Video::class, cascade: ['persist'])]
     private Collection $videos;
 
     public function __construct()

@@ -2,7 +2,7 @@
     <h5 class="my-0 mr-md-auto font-weight-normal"><a href="index.php">Awesome Videos</a></h5>
 
     <form class="form-inline my-0 mr-md-auto" action="{{ path('videos.search') }}">
-        <input name="search" class="form-control mr-sm-2" type="search" placeholder="video title" aria-label="Search video">
+        <input value="{{ app.request.query.get('search') }}" name="search" class="form-control mr-sm-2" type="search" placeholder="video title" aria-label="Search video">
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search video</button>
     </form>
     {{ render(controller("App\\Controller\\FrontController::getCategories")) }}
