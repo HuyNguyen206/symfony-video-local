@@ -27,12 +27,15 @@ class AdminController extends AbstractController
     #[Route('/payment', name: 'payment')]
     public function payment(): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         return $this->render('front/payment.html.twig');
     }
 
     #[Route('/categories', name: 'categories', methods: 'GET')]
     public function categories(EntityManagerInterface $entityManager, EagerService $eagerService): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $categories = $entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
         $results = [];
         foreach ($categories as $category) {
@@ -46,6 +49,8 @@ class AdminController extends AbstractController
     #[Route('/upload-video', name: 'videos.upload')]
     public function upload(): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return $this->render('admin/upload_video.html.twig');
     }
 
@@ -58,6 +63,8 @@ class AdminController extends AbstractController
     #[Route('/categories/{id}', name: 'categories.edit', methods: 'GET')]
     public function editCategory(int $id, EagerService $eagerService): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $categories = $this->entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
         $results = [];
         foreach ($categories as $categoryCheck) {
@@ -82,6 +89,8 @@ class AdminController extends AbstractController
     #[Route('/categories/{id}', name: 'categories.update', methods: 'PUT')]
     public function update(Category $category, EagerService $eagerService, Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $category->setName($request->request->get('name'));
         $category->setParentCategory($this->entityManager->getRepository(Category::class)->find($request->request->get('parent_category_id')));
         $this->entityManager->persist($category);
@@ -93,6 +102,8 @@ class AdminController extends AbstractController
     #[Route('/categories', name: 'categories.store', methods: 'POST')]
     public function store(Request $request): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $category = new Category();
         $category->setName($request->request->get('name'));
         $parentId = $request->request->get('parent_category_id');
@@ -109,6 +120,8 @@ class AdminController extends AbstractController
     #[Route('/categories/{id}', name: 'categories.delete', methods: 'DELETE')]
     public function delete(Category $category, EagerService $eagerService): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $this->entityManager->remove($category);
         $this->entityManager->flush();
 
@@ -118,6 +131,8 @@ class AdminController extends AbstractController
     #[Route('/users', name: 'users.index')]
     public function listUsers(): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         return $this->render('admin/users.html.twig');
     }
 }

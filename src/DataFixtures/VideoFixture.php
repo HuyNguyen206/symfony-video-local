@@ -5,11 +5,12 @@ namespace App\DataFixtures;
 use App\Entity\Category;
 use App\Entity\Video;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Faker\Generator;
 
-class VideoFixture extends Fixture
+class VideoFixture extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
@@ -27,5 +28,12 @@ class VideoFixture extends Fixture
         }
 
         $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+       return [
+         CategoryFixture::class
+       ];
     }
 }

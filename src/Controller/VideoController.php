@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Category;
+use App\Entity\Comment;
 use App\Entity\Video;
 use App\Repository\CategoryRepository;
+use App\Repository\CommentRepository;
 use App\Repository\VideoRepository;
 use App\Utils\CategoryTreeFrontPage;
 use App\Utils\EagerService;
@@ -13,10 +15,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class VideoController extends AbstractController
 {
+    public function __construct(protected EntityManagerInterface $entityManager)
+    {
 
+    }
 
     #[Route('categories/{name}/{categoryId}/videos/{page}', name: 'categories.videos', defaults: ['page' => 1], methods: 'GET')]
     public function index(
@@ -50,10 +56,13 @@ class VideoController extends AbstractController
             ->getSingleResult();
 
         $videoQb = $entityManager->getRepository(Video::class)->createQueryBuilder('v')->where('v.category = :category')
-        ->setParameter('category', $category)->orderBy('v.title', $sortMethod);
+            ->addSelect('count(comments.id) as commentCount')
+            ->setParameter('category', $category)
+            ->leftJoin('v.comments', 'comments')
+            ->groupBy('v.id')
+            ->orderBy('v.title', $sortMethod);
 
         $videos = $videoRepository->paginate($page, $videoQb);
-
 //        $s = $categoryTreeFrontPage->entityManager
 //            ->getRepository(Category::class)
 //            ->createQueryBuilder('cat')
@@ -70,9 +79,46 @@ class VideoController extends AbstractController
     }
 
     #[Route('/videos/{id}', name: 'videos.show', requirements: ['id' => '\d+'])]
-    public function show($id = null): Response
+    public function show(Video $video, CommentRepository $commentRepository, EagerService $eagerService): Response
     {
-        return $this->render('video/show.html.twig');
+//        $comments = $commentRepository->findBy(['video_id' => $id]);
+        $qb = $eagerService->resolveIncludes(Comment::class, 'com', includes: ['user']);
+
+        $comments = $qb->where('com.video = :video')
+            ->setParameter('video', $video)
+            ->getQuery()
+            ->getResult();
+//        dd($comments);
+        return $this->render('video/show.html.twig', compact('comments', 'video'));
+    }
+
+    #[Route('videos/{id}/comments', methods: ['POST'], name: 'videos.comments.store')]
+    public function storeComment(Video $video, Request $request, ValidatorInterface $validator)
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
+        $comment = new Comment;
+        $comment->setContent($request->request->get('content'));
+        $comment->setUser($this->getUser());
+        $errors = $validator->validate($comment);
+        $route = $request->headers->get('referer');
+        if (count($errors) > 0) {
+            /*
+             * Uses a __toString method on the $errors variable which is a
+             * ConstraintViolationList object. This gives us a nice string
+             * for debugging.
+             */
+            $this->addFlash('content_error', 'Content can not blank');
+
+            $route = $request->headers->get('referer');
+
+            return $this->redirect($route);
+        }
+
+        $video->addComment($comment);
+        $this->entityManager->persist($video);
+        $this->entityManager->flush();
+
+        return $this->redirect($route);
     }
 
     #[Route('/videos/search/{page?}', name: 'videos.search', defaults: ['page' => 1], methods: 'GET')]

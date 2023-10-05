@@ -2,5 +2,4 @@
     {% for category in categories %}
     <a class="p-2 text-dark" href="{{ path('categories.videos', {'categoryId' : category.id, 'name': category.name|lower|slugify }) }}">{{ category.name }}</a>
     {% endfor %}
-    <a class="p-2 text-dark" href="{{ path('admin') }}">My account</a>
 </nav>

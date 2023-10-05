@@ -2,10 +2,18 @@
     <h5 class="my-0 mr-md-auto font-weight-normal"><a href="index.php">Awesome Videos</a></h5>
 
     <form class="form-inline my-0 mr-md-auto" action="{{ path('videos.search') }}">
-        <input value="{{ app.request.query.get('search') }}" name="search" class="form-control mr-sm-2" type="search" placeholder="video title" aria-label="Search video">
+        <input value="{{ app.request.query.get('search') }}" name="search" class="form-control mr-sm-2" type="search"
+               placeholder="video title" aria-label="Search video">
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search video</button>
     </form>
     {{ render(controller("App\\Controller\\FrontController::getCategories")) }}
-    <a class="btn btn-outline-primary mr-2" href="{{ path('pricing') }}">Sign up</a>
-    <a class="btn btn-outline-primary" href="{{ path('show-login') }}">Sign in</a>
+
+    {% if not app.user %}
+        <a class="btn btn-outline-primary mr-2" href="{{ path('pricing') }}">Sign up</a>
+        <a class="btn btn-outline-primary" href="{{ path('login') }}">Sign in</a>
+    {% else %}
+        <a class="p-2 text-dark" href="{{ path('admin') }}">My account</a>
+
+    {% endif %}
+
 </div>

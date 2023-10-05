@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\VideoRepository;
 use App\Traits\Timestamp;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,7 +30,27 @@ class Video
     private ?int $duration = null;
 
     #[ORM\ManyToOne(inversedBy: 'videos')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Category $category = null;
+
+    #[ORM\OneToMany(mappedBy: 'video', targetEntity: Comment::class, cascade: ['persist'])]
+    private Collection $comments;
+
+    protected const VIMEO_VIDEO_FOR_USER_NOT_LOGGED_IN = 'https://player.vimeo.com/video/non-exist';
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
+
+    public function getVimeoId(?User $user)
+    {
+        if ($user) {
+            return $this->path;
+        }
+
+        return self::VIMEO_VIDEO_FOR_USER_NOT_LOGGED_IN;
+    }
 
     public function getId(): ?int
     {
@@ -79,6 +101,36 @@ class Video
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment): static
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setVideo($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comment $comment): static
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getVideo() === $this) {
+                $comment->setVideo(null);
+            }
+        }
 
         return $this;
     }

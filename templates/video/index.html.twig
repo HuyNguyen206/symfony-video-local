@@ -52,11 +52,11 @@
                 <div class="col-md-4">
                     <div class="card mb-4 shadow-sm">
                         <div align="center" class="embed-responsive embed-responsive-16by9">
-                            <iframe class="" src="https://player.vimeo.com/video/{{ video.id }}" frameborder="0"
+                            <iframe class="" src="{{  video[0].getVimeoId(app.user) }}" frameborder="0"
                                 allowfullscreen></iframe>
                         </div>
                         <div class="card-body">
-                            <h5>{{ video.title }}</h5>
+                            <h5>{{ video[0].title }}</h5>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group">
 
@@ -66,19 +66,19 @@
                                         type="button" class="btn btn-primary btn-outline-success btn-sm ml-1">
                                         <i class="fa fa-thumbs-up"></i>
                                     </button>
-                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You like the video. Click to unlike" type="button" class="btn btn-primary btn-outline-success btn-sm mr-2">
+                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You like the video[0]. Click to unlike" type="button" class="btn btn-primary btn-outline-success btn-sm mr-2">
                                     <i class="fa fa-thumbs-up"></i>
                                     </button> -->
                                     <button data-toggle="tooltip" data-placement="top" title="Click to dislike the video"
                                         type="button" class="btn btn-primary btn-outline-danger btn-sm ml-1 mr-1">
                                         <i class="fa fa-thumbs-down"></i>
                                     </button>
-                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You don't like the video. Click to undo" type="button" class="btn btn-primary btn-outline-danger btn-sm mr-2">
+                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You don't like the video[0]. Click to undo" type="button" class="btn btn-primary btn-outline-danger btn-sm mr-2">
                                     <i class="fa fa-thumbs-down"></i>
                                     </button> -->
-                                    <a href="{{ path('videos.show') }}">Comments (32)</a>
+                                    <a href="{{ path('videos.show', {'id': video[0].id}) }}">Comments ({{ video['commentCount'] }})</a>
                                 </div>
-                                <small class="text-muted">{{ video.duration }} mins</small>
+                                <small class="text-muted">{{ video[0].duration }} mins</small>
                             </div>
                         </div>
                     </div>
