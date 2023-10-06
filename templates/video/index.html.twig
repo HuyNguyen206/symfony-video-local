@@ -1,98 +1,128 @@
 {% extends 'base.html.twig' %}
 {% block main %}
-<main role="main">
+    <main role="main">
 
-    <section class="jumbotron text-center">
-        <div class="container">
+        <section class="jumbotron text-center">
+            <div class="container">
 
-            <h1 class="jumbotron-heading">{{ nameCurrentCategory }}</h1>
-            <div class="btn-group">
-                <div class="dropdown ml-2">
-                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        Subcategories
-                    </button>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="width: 200px">
-                        {% include 'front/includes/_sub_category.html.twig' with  {'subCategories': category.getSubCategories()} only %}
-                    </div>
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <ul class="mr-5">
-                            <li><a href="#">Funny</a></li>
-                            <ul>
-                                <li><a href="#">Surprising</a></li>
-                                <li><a href="#">Exciting</a></li>
+                <h1 class="jumbotron-heading">{{ nameCurrentCategory }}</h1>
+                <div class="btn-group">
+                    <div class="dropdown ml-2">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenuButton"
+                                data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                            Subcategories
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="width: 200px">
+                            {% include 'front/includes/_sub_category.html.twig' with  {'subCategories': category.getSubCategories()} only %}
+                        </div>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <ul class="mr-5">
+                                <li><a href="#">Funny</a></li>
                                 <ul>
-                                    <li><a href="#">Strange</a></li>
-                                    <li><a href="#">Relaxing</a></li>
+                                    <li><a href="#">Surprising</a></li>
+                                    <li><a href="#">Exciting</a></li>
+                                    <ul>
+                                        <li><a href="#">Strange</a></li>
+                                        <li><a href="#">Relaxing</a></li>
+                                    </ul>
                                 </ul>
                             </ul>
-                        </ul>
+                        </div>
+                    </div>
+
+                    <div class="form-row align-items-center ml-3">
+                        <form action="#">
+                            <select name="sort_by" class="custom-select mr-sm-2" id="inlineFormCustomSelect"
+                                    onchange='this.form.submit();'>
+                                <option selected>Sort...</option>
+                                <option value="1">Highest rated</option>
+                                <option value="asc">Title A-Z</option>
+                                <option value="desc">Title Z-A</option>
+                            </select>
+                        </form>
                     </div>
                 </div>
-
-                <div class="form-row align-items-center ml-3">
-                    <form action="#">
-                        <select name="sort_by" class="custom-select mr-sm-2" id="inlineFormCustomSelect" onchange='this.form.submit();'>
-                            <option selected>Sort...</option>
-                            <option value="1">Highest rated</option>
-                            <option value="asc">Title A-Z</option>
-                            <option value="desc">Title Z-A</option>
-                        </select>
-                    </form>
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <div class="album py-5 bg-light">
-        <div class="container">
+        <div class="album py-5 bg-light">
+            <div class="container">
 
-            <div class="row">
-                {% for video in videos %}
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <div align="center" class="embed-responsive embed-responsive-16by9">
-                            <iframe class="" src="{{  video[0].getVimeoId(app.user) }}" frameborder="0"
-                                allowfullscreen></iframe>
-                        </div>
-                        <div class="card-body">
-                            <h5>{{ video[0].title }}</h5>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-
-                                    <i class="fa fa-thumbs-up"><small class="text-muted">(23)</small></i>&nbsp;
-                                    <i class="fa fa-thumbs-down"><small class="text-muted">(9)</small></i>
-                                    <button data-toggle="tooltip" data-placement="top" title="Click to like the video"
-                                        type="button" class="btn btn-primary btn-outline-success btn-sm ml-1">
-                                        <i class="fa fa-thumbs-up"></i>
-                                    </button>
-                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You like the video[0]. Click to unlike" type="button" class="btn btn-primary btn-outline-success btn-sm mr-2">
-                                    <i class="fa fa-thumbs-up"></i>
-                                    </button> -->
-                                    <button data-toggle="tooltip" data-placement="top" title="Click to dislike the video"
-                                        type="button" class="btn btn-primary btn-outline-danger btn-sm ml-1 mr-1">
-                                        <i class="fa fa-thumbs-down"></i>
-                                    </button>
-                                    <!-- <button data-toggle="tooltip" data-placement="top" title="You don't like the video[0]. Click to undo" type="button" class="btn btn-primary btn-outline-danger btn-sm mr-2">
-                                    <i class="fa fa-thumbs-down"></i>
-                                    </button> -->
-                                    <a href="{{ path('videos.show', {'id': video[0].id}) }}">Comments ({{ video['commentCount'] }})</a>
+                <div class="row">
+                    {% for video in videos %}
+                        <div class="col-md-4">
+                            <div class="card mb-4 shadow-sm">
+                                <div align="center" class="embed-responsive embed-responsive-16by9">
+                                    <iframe class="" src="{{ video[0].getVimeoId(app.user) }}" frameborder="0"
+                                            allowfullscreen></iframe>
                                 </div>
-                                <small class="text-muted">{{ video[0].duration }} mins</small>
+                                <div class="card-body">
+                                    <h5>{{ video[0].title }}</h5>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="btn-group">
+
+                                            <i class="fa fa-thumbs-up"><small
+                                                        class="text-muted">({{ video['likeCount'] }})</small></i>&nbsp;
+                                            <i class="fa fa-thumbs-down"><small
+                                                        class="text-muted">({{ video['dislikeCount'] }})</small
+                                                      ></i>
+                                            <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 1}) }}">
+                                                <button data-toggle="tooltip" data-placement="top"
+                                                        title="Click to like the video"
+                                                        type="button"
+                                                        class="btn btn-primary btn-outline-success btn-sm ml-1 {% if video['isLikeVideo']|bool  %} like-reaction {% endif %}">
+                                                    <i class="fa fa-thumbs-up"></i>
+                                                </button>
+                                                </a>
+                                            <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 0}) }}">
+                                                <button data-toggle="tooltip" data-placement="top"
+                                                        title="Click to dislike the video"
+                                                        type="button"
+                                                        class="btn btn-primary btn-outline-danger btn-sm ml-1 mr-1 {% if video['isDislikeVideo']|bool  %} dislike-reaction {% endif %}">
+                                                    <i class="fa fa-thumbs-down"></i>
+                                                </button>
+                                            </a>
+                                            <!-- <button data-toggle="tooltip" data-placement="top" title="You like the video[0]. Click to unlike" type="button" class="btn btn-primary btn-outline-success btn-sm mr-2">
+                                            <i class="fa fa-thumbs-up"></i>
+                                            </button> -->
+
+                                            <!-- <button data-toggle="tooltip" data-placement="top" title="You don't like the video[0]. Click to undo" type="button" class="btn btn-primary btn-outline-danger btn-sm mr-2">
+                                            <i class="fa fa-thumbs-down"></i>
+                                            </button> -->
+                                            <a href="{{ path('videos.show', {'id': video[0].id}) }}">Comments
+                                                ({{ video['commentCount'] }})</a>
+                                        </div>
+                                        <small class="text-muted">{{ video[0].duration }} mins</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% endfor %}
+
+
                 </div>
-                {% endfor %}
-
-
             </div>
         </div>
-    </div>
 
-    <!-- pagination -->
-   {{ knp_pagination_render(videos) }}
+        <!-- pagination -->
+        {{ knp_pagination_render(videos) }}
 
 
-</main>
+    </main>
 {% endblock %}
+{% block custom_js %}
+<style>
+    .dislike-reaction {
+        color: #fff;
+        background-color: #E74C3C;
+        border-color: #E74C3C;color: #fff;
+    }
+    .like-reaction {
+        color: #fff;
+        background-color: #00bc8c;
+        border-color: #00bc8c;
+    }
+</style>
+{% endblock %}
+

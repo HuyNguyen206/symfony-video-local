@@ -54,9 +54,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Comment::class)]
     private Collection $comments;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserInteractiveVideo::class)]
+    private Collection $userInteractiveVideos;
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
+        $this->userInteractiveVideos = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -194,4 +198,40 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, UserInteractiveVideo>
+     */
+    public function getUserInteractiveVideos(): Collection
+    {
+        return $this->userInteractiveVideos;
+    }
+
+    public function addUserInteractiveVideo(UserInteractiveVideo $userInteractiveVideo): static
+    {
+        if (!$this->userInteractiveVideos->contains($userInteractiveVideo)) {
+            $this->userInteractiveVideos->add($userInteractiveVideo);
+            $userInteractiveVideo->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserInteractiveVideo(UserInteractiveVideo $userInteractiveVideo): static
+    {
+        if ($this->userInteractiveVideos->removeElement($userInteractiveVideo)) {
+            // set the owning side to null (unless already changed)
+            if ($userInteractiveVideo->getUser() === $this) {
+                $userInteractiveVideo->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function likeVideo(Video $video)
+    {
+//        return
+    }
+
 }

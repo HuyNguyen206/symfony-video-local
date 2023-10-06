@@ -12,6 +12,11 @@ framework:
         cookie_secure: auto
         cookie_samesite: lax
         storage_factory_id: session.storage.factory.native
+#        gc_maxlifetime: 1
+#        cookie_lifetime: 43200
+#        gc_probability: 100
+#        gc_divisor: 100
+
 
     #esi: true
     #fragments: true

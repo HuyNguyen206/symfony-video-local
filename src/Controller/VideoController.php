@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Comment;
+use App\Entity\UserInteractiveVideo;
 use App\Entity\Video;
 use App\Repository\CategoryRepository;
 use App\Repository\CommentRepository;
@@ -56,13 +57,38 @@ class VideoController extends AbstractController
             ->getSingleResult();
 
         $videoQb = $entityManager->getRepository(Video::class)->createQueryBuilder('v')->where('v.category = :category')
-            ->addSelect('count(comments.id) as commentCount')
+            ->addSelect('count(DISTINCT(comments.id)) as commentCount')
             ->setParameter('category', $category)
             ->leftJoin('v.comments', 'comments')
             ->groupBy('v.id')
             ->orderBy('v.title', $sortMethod);
 
         $videos = $videoRepository->paginate($page, $videoQb);
+        $videoIds = collect($videos)->map(function ($video){
+           return $video[0]->getId();
+        })->toArray();
+
+
+        $videoInteractions = collect($entityManager->getRepository(UserInteractiveVideo::class)
+            ->createQueryBuilder('uiv')
+            ->select('v.id',
+                'SUM(case when uiv.type = 1 then 1 else 0 end) as likeCount',
+                'SUM(case when uiv.type = 0 then 1 else 0 end) as dislikeCount',
+                'SUM(case when uiv.user = :userId and uiv.type = 1 then 1 else 0 end) as isLikeVideo',
+                'SUM(case when uiv.user = :userId and uiv.type = 0 then 1 else 0 end) as isDislikeVideo',
+            )
+            ->leftJoin('uiv.video', 'v')
+            ->where('uiv.video in (:videoIds)')
+            ->setParameter('videoIds', $videoIds)
+            ->setParameter('userId', $this->getUser()->getId())
+            ->groupBy('v.id')
+            ->getQuery()->getResult())->keyBy('id');
+
+        $videosWithCount = collect($videos->getItems())->map(function ($video) use ($videoInteractions){
+             $video += $videoInteractions[$video[0]->getId()];
+             return $video;
+        });
+        $videos->setItems($videosWithCount->all());
 //        $s = $categoryTreeFrontPage->entityManager
 //            ->getRepository(Category::class)
 //            ->createQueryBuilder('cat')
@@ -137,5 +163,34 @@ class VideoController extends AbstractController
     public function pricing($id = null): Response
     {
         return $this->render('pricing.html.twig');
+    }
+
+    #[Route('/videos/{id}/react/{isLike}', methods: ['GET'], name: 'video.react')]
+    public function interactVideo(Video $video, int $isLike, Request $request)
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
+        $route = $request->headers->get('referer');
+        $userInteractiveVideo = $this->entityManager->getRepository(UserInteractiveVideo::class)->findOneBy(['video' => $video, 'user' => $this->getUser()]);
+//        if (!$userInteractiveVideo) {
+//            $userInteractiveVideo = new UserInteractiveVideo;
+//            $userInteractiveVideo->setVideo($video);
+//            $userInteractiveVideo->setUser($this->getUser());
+//        }
+
+        if ($userInteractiveVideo->isLiked()) {
+            if ($isLike) {
+                return $this->redirect($route);
+            }
+            $userInteractiveVideo->setType($isLike);
+        } else {
+            if (!$isLike) {
+                return $this->redirect($route);
+            }
+            $userInteractiveVideo->setType($isLike);
+        }
+        $this->entityManager->persist($userInteractiveVideo);
+        $this->entityManager->flush();
+
+        return $this->redirect($route);
     }
 }
