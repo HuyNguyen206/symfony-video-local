@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Category;
+use App\Repository\VideoRepository;
 use App\Utils\EagerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +22,8 @@ class AdminController extends AbstractController
     #[Route('/', name: 'admin')]
     public function index(): Response
     {
-        return $this->render('admin/my_profile.html.twig');
+        $subscription = $this->getUser()->getSubscription();
+        return $this->render('admin/my_profile.html.twig', compact('subscription'));
     }
 
     #[Route('/payment', name: 'payment')]
@@ -54,10 +56,14 @@ class AdminController extends AbstractController
         return $this->render('admin/upload_video.html.twig');
     }
 
-    #[Route('/videos', name: 'admin.videos.index')]
-    public function listVideos(): Response
+    #[Route('/videos/{page}', name: 'admin.videos.index')]
+    public function listVideos(VideoRepository $videoRepository, int $page = 1): Response
     {
-        return $this->render('admin/videos.html.twig');
+        $videoQb = $videoRepository->createQueryBuilder('v')->orderBy('v.title', 'asc');
+
+        $videos = $videoRepository->paginate($page, $videoQb);
+
+        return $this->render('admin/videos.html.twig', compact('videos'));
     }
 
     #[Route('/categories/{id}', name: 'categories.edit', methods: 'GET')]

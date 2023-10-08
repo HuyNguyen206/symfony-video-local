@@ -1,5 +1,5 @@
 <nav class="my-2 my-md-0 mr-md-3">
     {% for category in categories %}
-    <a class="p-2 text-dark" href="{{ path('categories.videos', {'categoryId' : category.id, 'name': category.name|lower|slugify }) }}">{{ category.name }}</a>
+    <a class="p-2 text-dark" href="{{ path('videos.index', {'categoryId' : category.id, 'name': category.name|lower|slugify }) }}">{{ category.name }}</a>
     {% endfor %}
 </nav>

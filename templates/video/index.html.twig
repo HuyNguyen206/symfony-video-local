@@ -13,9 +13,11 @@
                                 aria-haspopup="true" aria-expanded="false">
                             Subcategories
                         </button>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="width: 200px">
-                            {% include 'front/includes/_sub_category.html.twig' with  {'subCategories': category.getSubCategories()} only %}
-                        </div>
+                        {% if not app.request.query.get('search') %}
+                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" style="width: 200px">
+                                {% include 'front/includes/_sub_category.html.twig' with  {'subCategories': category.getSubCategories()} only %}
+                            </div>
+                        {% endif %}
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                             <ul class="mr-5">
                                 <li><a href="#">Funny</a></li>
@@ -30,17 +32,25 @@
                             </ul>
                         </div>
                     </div>
-
+                    {% set search = app.request.query.get('search') %}
+                    {% dump search %}
                     <div class="form-row align-items-center ml-3">
-                        <form action="#">
-                            <select name="sort_by" class="custom-select mr-sm-2" id="inlineFormCustomSelect"
-                                    onchange='this.form.submit();'>
-                                <option selected>Sort...</option>
-                                <option value="1">Highest rated</option>
-                                <option value="asc">Title A-Z</option>
-                                <option value="desc">Title Z-A</option>
-                            </select>
-                        </form>
+                        {% if search %}
+                        <form action="{{ path('videos.index', {'name': 'all'}) }}">
+                            {% else %}
+                         <form action="{{ path('videos.index', {'search': search, 'name': category.name|lower|slugify, 'categoryId': category.id}) }}">
+                          {% endif %}
+                                {% if search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                                <select name="sort_by" class="custom-select mr-sm-2" id="inlineFormCustomSelect"
+                                        onchange='this.form.submit();'>
+                                    <option selected>Sort...</option>
+                                    <option value="rating">Highest rated</option>
+                                    <option value="asc">Title A-Z</option>
+                                    <option value="desc">Title Z-A</option>
+                                </select>
+                            </form>
                     </div>
                 </div>
             </div>
@@ -63,26 +73,29 @@
                                         <div class="btn-group">
 
                                             <i class="fa fa-thumbs-up"><small
-                                                        class="text-muted">({{ video['likeCount'] }})</small></i>&nbsp;
+                                                        class="text-muted">({{ video[0].likeCount }})</small></i>&nbsp;
                                             <i class="fa fa-thumbs-down"><small
-                                                        class="text-muted">({{ video['dislikeCount'] }})</small
-                                                      ></i>
-                                            <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 1}) }}">
-                                                <button data-toggle="tooltip" data-placement="top"
-                                                        title="Click to like the video"
-                                                        type="button"
-                                                        class="btn btn-primary btn-outline-success btn-sm ml-1 {% if video['isLikeVideo']|bool  %} like-reaction {% endif %}">
-                                                    <i class="fa fa-thumbs-up"></i>
-                                                </button>
+                                                        class="text-muted">({{ video[0].dislikeCount }})</small
+                                                ></i>
+                                            {% if app.user %}
+                                                <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 1}) }}">
+
+                                                    <button data-toggle="tooltip" data-placement="top"
+                                                            title="Click to like the video"
+                                                            type="button"
+                                                            class="btn btn-primary btn-outline-success btn-sm ml-1 {% if video['isLikeVideo']|bool %} like-reaction {% endif %}">
+                                                        <i class="fa fa-thumbs-up"></i>
+                                                    </button>
                                                 </a>
-                                            <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 0}) }}">
-                                                <button data-toggle="tooltip" data-placement="top"
-                                                        title="Click to dislike the video"
-                                                        type="button"
-                                                        class="btn btn-primary btn-outline-danger btn-sm ml-1 mr-1 {% if video['isDislikeVideo']|bool  %} dislike-reaction {% endif %}">
-                                                    <i class="fa fa-thumbs-down"></i>
-                                                </button>
-                                            </a>
+                                                <a href="{{ path('video.react', {'id': video[0].id, 'isLike': 0}) }}">
+                                                    <button data-toggle="tooltip" data-placement="top"
+                                                            title="Click to dislike the video"
+                                                            type="button"
+                                                            class="btn btn-primary btn-outline-danger btn-sm ml-1 mr-1 {% if video['isDislikeVideo']|bool %} dislike-reaction {% endif %}">
+                                                        <i class="fa fa-thumbs-down"></i>
+                                                    </button>
+                                                </a>
+                                            {% endif %}
                                             <!-- <button data-toggle="tooltip" data-placement="top" title="You like the video[0]. Click to unlike" type="button" class="btn btn-primary btn-outline-success btn-sm mr-2">
                                             <i class="fa fa-thumbs-up"></i>
                                             </button> -->
@@ -112,17 +125,19 @@
     </main>
 {% endblock %}
 {% block custom_js %}
-<style>
-    .dislike-reaction {
-        color: #fff;
-        background-color: #E74C3C;
-        border-color: #E74C3C;color: #fff;
-    }
-    .like-reaction {
-        color: #fff;
-        background-color: #00bc8c;
-        border-color: #00bc8c;
-    }
-</style>
+    <style>
+        .dislike-reaction {
+            color: #fff;
+            background-color: #E74C3C;
+            border-color: #E74C3C;
+            color: #fff;
+        }
+
+        .like-reaction {
+            color: #fff;
+            background-color: #00bc8c;
+            border-color: #00bc8c;
+        }
+    </style>
 {% endblock %}
 

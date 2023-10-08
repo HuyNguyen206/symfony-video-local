@@ -2,7 +2,6 @@
 
 namespace App\Tests;
 
-use App\Entity\Category;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -24,10 +23,10 @@ class AdminCategoryControllerTest extends WebTestCase
 
     public function testGetCorrectSubCategory(): void
     {
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('categories.videos', ['name' => 'graphic-card', 'categoryId' => 1]));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('videos.index', ['name' => 'graphic-card', 'categoryId' => 1]));
         self::assertSame('Nvidia', $crawler->filter('.dropdown-menu li')->text());
 
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('categories.videos', ['name' => 'graphic-card', 'categoryId' => 1]));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('videos.index', ['name' => 'graphic-card', 'categoryId' => 1]));
         self::assertNotSame('LG', $crawler->filter('.dropdown-menu li')->text());
     }
 

@@ -10,33 +10,35 @@
         <th>#</th>
         <th>Video name</th>
         <th>Link</th>
-        <th>Category</th>
-        <th>Delete</th>
+{#        <th>Category</th>#}
+{#        <th>Delete</th>#}
       </tr>
     </thead>
     <tbody>
-
+{% for video in videos %}
       <tr>
         <td><?=$v?></td>
-        <td>Video name</td>
-        <td><a target="_blank" href="http://vimeo.com">go to video</a></td>
-        <td>
-            <form action="#" method="POST">
-                <select onchange="this.form.submit();">
-                <option selected>Parent...</option>
-                <option value="1">Funny</option>
-                <option value="1">--For kids</option>
-                <option value="1">----For adults</option>
-                <option value="2">Scary</option>
-                <option value="3">Motivating</option>
-                </select>
-            </form>
-        </td>
-        <td><a href="#" onclick="delete_video(event,2);"><i class="fas fa-trash"></i></a></td>
+        <td>{{ video.title }}</td>
+        <td><a target="_blank" href="{{ path('videos.show', {'id': video.id}) }}">go to video</a></td>
+{#        <td>#}
+{#            <form action="#" method="POST">#}
+{#                <select onchange="this.form.submit();">#}
+{#                <option selected>Parent...</option>#}
+{#                <option value="1">Funny</option>#}
+{#                <option value="1">--For kids</option>#}
+{#                <option value="1">----For adults</option>#}
+{#                <option value="2">Scary</option>#}
+{#                <option value="3">Motivating</option>#}
+{#                </select>#}
+{#            </form>#}
+{#        </td>#}
+{#        <td><a href="#" onclick="delete_video(event,2);"><i class="fas fa-trash"></i></a></td>#}
       </tr>
+    {% endfor %}
     </tbody>
   </table>
 </div>
+    {{ knp_pagination_render(videos) }}
 
 {%  endblock %}
 {% block custom_js %}

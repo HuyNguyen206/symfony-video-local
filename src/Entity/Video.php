@@ -6,7 +6,6 @@ use App\Repository\VideoRepository;
 use App\Traits\Timestamp;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VideoRepository::class)]
@@ -39,6 +38,12 @@ class Video
     #[ORM\OneToMany(mappedBy: 'video', targetEntity: UserInteractiveVideo::class)]
     private Collection $userInteractiveVideos;
 
+    #[ORM\Column(options: ['default' => 0])]
+    private int $likeCount = 0;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $dislikeCount = 0;
+
     protected const VIMEO_VIDEO_FOR_USER_NOT_LOGGED_IN = 'https://player.vimeo.com/video/non-exist';
     public function __construct()
     {
@@ -48,7 +53,7 @@ class Video
 
     public function getVimeoId(?User $user)
     {
-        if ($user) {
+        if ($user && $user->hasActiveSubscription()) {
             return $this->path;
         }
 
@@ -164,6 +169,30 @@ class Video
                 $userInteractiveVideo->setVideo(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLikeCount(): ?int
+    {
+        return $this->likeCount;
+    }
+
+    public function setLikeCount(int $likeCount): static
+    {
+        $this->likeCount = $likeCount;
+
+        return $this;
+    }
+
+    public function getDislikeCount(): ?int
+    {
+        return $this->dislikeCount;
+    }
+
+    public function setDislikeCount(int $dislikeCount): static
+    {
+        $this->dislikeCount = $dislikeCount;
 
         return $this;
     }

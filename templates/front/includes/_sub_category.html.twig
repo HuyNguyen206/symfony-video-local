@@ -1,6 +1,6 @@
     <ul class="mr-5">
         {% for category in subCategories %}
-        <li><a href="{{ path('categories.videos', {'categoryId' : category.id, 'name': category.name|lower|slugify }) }}">{{ category.name }}</a></li>
+        <li><a href="{{ path('videos.index', {'categoryId' : category.id, 'name': category.name|lower|slugify }) }}">{{ category.name }}</a></li>
             {% if category.getSubCategories()|length > 0  %}
                 {% include 'front/includes/_sub_category.html.twig' with  {'subCategories': category.subCategories} only %}
             {% endif%}

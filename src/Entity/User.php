@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use App\Traits\Timestamp;
+use Carbon\Carbon;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,7 +12,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints\Email;
-use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Table('users')]
@@ -56,6 +56,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserInteractiveVideo::class)]
     private Collection $userInteractiveVideos;
+
+    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Subscription $subscription = null;
 
     public function __construct()
     {
@@ -232,6 +235,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function likeVideo(Video $video)
     {
 //        return
+    }
+
+    public function getSubscription(): ?Subscription
+    {
+        return $this->subscription;
+    }
+
+    public function setSubscription(?Subscription $subscription): static
+    {
+        $this->subscription = $subscription;
+
+        return $this;
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        $subscription = $this->getSubscription();
+
+        return $subscription && $subscription->getPlan() !== 'canceled' && Carbon::now()->lessThanOrEqualTo($subscription->getValidTo());
     }
 
 }

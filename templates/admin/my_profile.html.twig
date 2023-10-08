@@ -2,54 +2,73 @@
 
 {% block main %}
 
-<h2>My profile <small><a onclick="return confirm('Are you sure?');" href="#">delete account</a></small></h2>
-<p class="text-left">My plan - Pro. <a onclick="return confirm('Are you sure? This can not be undone. Remember also to cancel payment in your PayPal account.');"
-        href="#">cancel plan</a></p>
-<p class="text-left">My plan - Free. <a href="{{ path('payment') }}">get paid plan</a></p>
+    <h2>My profile <small><a onclick="return confirm('Are you sure?');" href="#">delete account</a></small></h2>
+    {% if is_granted('ROLE_ADMIN') %}
+        {#        {% if not subscription or not subscription.validTo %} #}
+        {#            <a href="{{ path('subscription.store') }}">You don't have any plan. Add plan</a> #}
+        {#            {% else %} #}
 
-<form class="mt-5" method="POST" action="#">
-    <div class="form-group">
-        <label for="vimeoapikey">Vimeo API key</label>
-        <input required type="text" class="form-control is-invalid" id="vimeoapikey" placeholder="Enter api key">
-        <div class="invalid-feedback">
-            Please provide api key
+        {#        {% endif %} #}
+
+        {% if subscription %}
+            {% if subscription.plan is not same as 'cancel' %}
+                <p class="text-left">My plan - {{ subscription.plan }}. valid
+                to {{ subscription.validTo|date('Y-m-d') }}
+                {% if subscription.hasFreePlan %}
+                    <a href="{{ path('pricing') }}">Get paid plan</a>
+                {% endif %}
+                <a href="{{ path('subscription.cancel') }}">Cancel plan</a>
+            {% else %}
+                <a href="{{ path('pricing') }}">You don't have any plan. Get paid plan</a>
+            {% endif %}
+        {% else %}
+            <a href="#">You don't have any plan. Get paid plan</a>
+        {% endif %}
+    {% endif %}
+    <form class="mt-5" method="POST" action="#">
+        <div class="form-group">
+            <label for="vimeoapikey">Vimeo API key</label>
+            <input required type="text" class="form-control is-invalid" id="vimeoapikey" placeholder="Enter api key">
+            <div class="invalid-feedback">
+                Please provide api key
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input required type="text" class="form-control is-invalid" id="name" placeholder="Your name">
-        <div class="invalid-feedback">
-            Please provide your name
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input required type="text" class="form-control is-invalid" id="name" placeholder="Your name">
+            <div class="invalid-feedback">
+                Please provide your name
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="lastname">Last name</label>
-        <input required type="text" class="form-control is-invalid" id="lastname" placeholder="Your last name">
-        <div class="invalid-feedback">
-            Please provide your last name
+        <div class="form-group">
+            <label for="lastname">Last name</label>
+            <input required type="text" class="form-control is-invalid" id="lastname" placeholder="Your last name">
+            <div class="invalid-feedback">
+                Please provide your last name
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="email">Email address</label>
-        <input required type="email" class="form-control is-invalid" id="email" placeholder="Enter email">
-        <div class="invalid-feedback">
-            Please provide valid email address
+        <div class="form-group">
+            <label for="email">Email address</label>
+            <input required type="email" class="form-control is-invalid" id="email" placeholder="Enter email">
+            <div class="invalid-feedback">
+                Please provide valid email address
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input required type="password" class="form-control is-invalid" id="password" placeholder="Password">
-        <div class="invalid-feedback">
-            Please provide password (min. 6 characters)
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input required type="password" class="form-control is-invalid" id="password" placeholder="Password">
+            <div class="invalid-feedback">
+                Please provide password (min. 6 characters)
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <label for="password_confirmation">Confirm password</label>
-        <input required type="password" class="form-control is-invalid" id="password_confirmation" placeholder="Confirm password">
-        <div class="invalid-feedback">
-            Please provide valid password confirmation
+        <div class="form-group">
+            <label for="password_confirmation">Confirm password</label>
+            <input required type="password" class="form-control is-invalid" id="password_confirmation"
+                   placeholder="Confirm password">
+            <div class="invalid-feedback">
+                Please provide valid password confirmation
+            </div>
         </div>
-    </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
 {% endblock %}

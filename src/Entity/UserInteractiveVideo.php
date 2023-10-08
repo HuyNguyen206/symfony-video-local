@@ -4,11 +4,13 @@ namespace App\Entity;
 
 use App\Repository\UserInteractiveVideoRepository;
 use App\Traits\Timestamp;
+use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: UserInteractiveVideoRepository::class)]
 #[UniqueEntity(fields: ['user_id', 'video_id', 'type'])]
+#[ORM\HasLifecycleCallbacks]
 class UserInteractiveVideo
 {
     use Timestamp;
@@ -75,5 +77,19 @@ class UserInteractiveVideo
     public function isDisliked()
     {
         return !$this->isType();
+    }
+
+    #[ORM\PrePersist]
+    public function addUserInteraction(PrePersistEventArgs $eventArgs)
+    {
+        $interaction = $eventArgs->getObject();
+        $isLiked = $interaction->isLiked();
+        $video = $interaction->getVideo();
+        if ($isLiked) {
+            $video->setLikeCount($video->getLikeCount() + 1);
+        } else {
+            $video->setDislikeCount($video->getDislikeCount() + 1);
+        }
+        $eventArgs->getObjectManager()->persist($video);
     }
 }
