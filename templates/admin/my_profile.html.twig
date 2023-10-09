@@ -3,28 +3,31 @@
 {% block main %}
 
     <h2>My profile <small><a onclick="return confirm('Are you sure?');" href="#">delete account</a></small></h2>
-    {% if is_granted('ROLE_ADMIN') %}
-        {#        {% if not subscription or not subscription.validTo %} #}
-        {#            <a href="{{ path('subscription.store') }}">You don't have any plan. Add plan</a> #}
-        {#            {% else %} #}
 
-        {#        {% endif %} #}
+    {#        {% if not subscription or not subscription.validTo %} #}
+    {#            <a href="{{ path('subscription.store') }}">You don't have any plan. Add plan</a> #}
+    {#            {% else %} #}
 
-        {% if subscription %}
-            {% if subscription.plan is not same as 'cancel' %}
-                <p class="text-left">My plan - {{ subscription.plan }}. valid
-                to {{ subscription.validTo|date('Y-m-d') }}
-                {% if subscription.hasFreePlan %}
-                    <a href="{{ path('pricing') }}">Get paid plan</a>
-                {% endif %}
-                <a href="{{ path('subscription.cancel') }}">Cancel plan</a>
-            {% else %}
-                <a href="{{ path('pricing') }}">You don't have any plan. Get paid plan</a>
+    {#        {% endif %} #}
+
+    {% if subscription %}
+        {% if subscription.plan is not same as 'cancel' %}
+            <p class="text-left">My plan - {{ subscription.plan }}. valid
+            to {{ subscription.validTo|date('Y-m-d') }}
+            {% if subscription.hasFreePlan %}
+                <a href="{{ path('pricing') }}">Get paid plan</a>
             {% endif %}
+            {% if not subscription.paymentStatus %}
+                <span>Plan is not active</span><a href="{{ path('payment', {'plan': app.session.get('plan')}) }}">Pay for plan</a>
+            {% endif %}
+            <a href="{{ path('subscription.cancel') }}">Cancel plan</a>
         {% else %}
-            <a href="#">You don't have any plan. Get paid plan</a>
+            <a href="{{ path('pricing') }}">You don't have any plan. Get paid plan</a>
         {% endif %}
+    {% else %}
+        <a href="{{ path('pricing') }}">You don't have any plan. Get paid plan</a>
     {% endif %}
+
     <form class="mt-5" method="POST" action="#">
         <div class="form-group">
             <label for="vimeoapikey">Vimeo API key</label>

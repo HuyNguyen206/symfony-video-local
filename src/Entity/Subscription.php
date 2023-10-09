@@ -27,7 +27,7 @@ class Subscription
     #[ORM\Column]
     private ?bool $free_plan_used = null;
 
-    #[ORM\OneToOne(mappedBy: 'subscription', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'subscription', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?User $user = null;
 

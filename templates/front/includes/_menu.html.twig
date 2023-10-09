@@ -12,8 +12,8 @@
         <a class="btn btn-outline-primary mr-2" href="{{ path('pricing') }}">Sign up</a>
         <a class="btn btn-outline-primary" href="{{ path('login') }}">Sign in</a>
     {% else %}
-        <a class="p-2 text-dark" href="{{ path('admin') }}">My account</a>
-
+        <a class="p-2 text-dark font-weight-bold" href="{{ path('admin') }}">My account</a>
+        <a class="p-2 text-dark font-weight-bold" href="{{ path('pricing') }}">Pricing</a>
     {% endif %}
 
 </div>

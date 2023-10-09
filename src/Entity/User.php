@@ -57,7 +57,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: UserInteractiveVideo::class)]
     private Collection $userInteractiveVideos;
 
-    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Subscription $subscription = null;
 
     public function __construct()
@@ -253,7 +253,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $subscription = $this->getSubscription();
 
-        return $subscription && $subscription->getPlan() !== 'canceled' && Carbon::now()->lessThanOrEqualTo($subscription->getValidTo());
+        return $subscription && $subscription->getPaymentStatus() === 'paid' && $subscription->getPlan() !== 'canceled' && Carbon::now()->lessThanOrEqualTo($subscription->getValidTo());
     }
 
 }

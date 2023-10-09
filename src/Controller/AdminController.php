@@ -3,33 +3,53 @@
 namespace App\Controller;
 
 use App\Entity\Category;
+use App\Entity\Enums\SubscriptionPrice;
 use App\Repository\VideoRepository;
 use App\Utils\EagerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('admin')]
 class AdminController extends AbstractController
 {
-    public function __construct(protected EntityManagerInterface $entityManager, protected ValidatorInterface $validator)
-    {
+    public function __construct(
+        protected EntityManagerInterface $entityManager,
+        protected ValidatorInterface $validator
+    ) {
     }
 
     #[Route('/', name: 'admin')]
-    public function index(): Response
+    public function index(SessionInterface $session): Response
     {
         $subscription = $this->getUser()->getSubscription();
         return $this->render('admin/my_profile.html.twig', compact('subscription'));
     }
 
-    #[Route('/payment', name: 'payment')]
-    public function payment(): Response
+    #[Route("/payment/process", name: 'payment.process')]
+    public function process()
     {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $subscription = $this->getUser()->getSubscription();
+        $subscription->setPaymentStatus('paid');
+        $this->entityManager->persist($subscription);
+        $this->entityManager->flush();
+
+        return $this->redirectToRoute('admin');
+    }
+
+    #[Route('/payment/{plan}', name: 'payment')]
+    public function payment(string $plan, SessionInterface $session, Request $request): Response
+    {
+//        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if ($request->isMethod('GET')) {
+            $session->set('plan', $plan);
+            $session->set('price', SubscriptionPrice::fromName($plan)->value);
+        }
+
         return $this->render('front/payment.html.twig');
     }
 
@@ -41,8 +61,10 @@ class AdminController extends AbstractController
         $categories = $entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
         $results = [];
         foreach ($categories as $category) {
-            $qb = $eagerService->resolveIncludes(Category::class, 'cat', includes: ['subCategories.subCategories.subCategories.subCategories']);
-            $results[] = $qb->where('cat.id = :id')->setParameter('id', $category->getId())->getQuery()->getSingleResult();
+            $qb = $eagerService->resolveIncludes(Category::class, 'cat',
+                includes: ['subCategories.subCategories.subCategories.subCategories']);
+            $results[] = $qb->where('cat.id = :id')->setParameter('id',
+                $category->getId())->getQuery()->getSingleResult();
         }
 
         return $this->render('admin/categories.html.twig', compact('results'));
@@ -74,8 +96,10 @@ class AdminController extends AbstractController
         $categories = $this->entityManager->getRepository(Category::class)->findby(['parentCategory' => null]);
         $results = [];
         foreach ($categories as $categoryCheck) {
-            $qb = $eagerService->resolveIncludes(Category::class, 'cat', includes: ['subCategories.subCategories.subCategories.subCategories']);
-            $results[] = $qb->where('cat.id = :id')->setParameter('id', $categoryCheck->getId())->getQuery()->getSingleResult();
+            $qb = $eagerService->resolveIncludes(Category::class, 'cat',
+                includes: ['subCategories.subCategories.subCategories.subCategories']);
+            $results[] = $qb->where('cat.id = :id')->setParameter('id',
+                $categoryCheck->getId())->getQuery()->getSingleResult();
         }
 
         $category = $eagerService->resolveIncludes(Category::class, 'cat', includes: ['parentCategory'])

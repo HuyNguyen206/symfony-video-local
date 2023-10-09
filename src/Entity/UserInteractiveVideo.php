@@ -20,6 +20,7 @@ class UserInteractiveVideo
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'userInteractiveVideos')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column()]

@@ -34,4 +34,5 @@ class SubscriptionController extends AbstractController
         $this->entityManager->flush();
         return $this->redirectToRoute('admin');
     }
+
 }

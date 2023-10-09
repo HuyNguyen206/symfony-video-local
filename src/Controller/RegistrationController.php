@@ -2,16 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\Enums\SubscriptionPrice;
+use App\Entity\Subscription;
 use App\Entity\User;
 use App\Form\RegistrationFormType;
 use App\Repository\UserRepository;
 use App\Security\EmailVerifier;
+use Carbon\Carbon;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Mime\Address;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -27,9 +29,23 @@ class RegistrationController extends AbstractController
         $this->emailVerifier = $emailVerifier;
     }
 
-    #[Route('/register', name: 'register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
+    #[Route('/register/{plan}', name: 'register')]
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        EntityManagerInterface $entityManager,
+        string $plan,
+        SessionInterface $session): Response
     {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('admin');
+        }
+
+        if ($request->isMethod('GET')) {
+            $session->set('plan', $plan);
+            $session->set('price', SubscriptionPrice::fromName($plan)->value);
+        }
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -41,6 +57,11 @@ class RegistrationController extends AbstractController
                     $request->request->all('registration_form')['password']['first']
                 )
             );
+            $subscription = new Subscription();
+            $subscription->setPlan($plan = $session->get('plan'));
+            $subscription->setValidTo(Carbon::now()->addMonth());
+            $subscription->setFreePlanUsed($plan == 'FREE');
+            $subscription->setUser($user);
 
             $user->setName($form->get('name')->getData());
             $user->setName($form->get('email')->getData());
@@ -60,7 +81,7 @@ class RegistrationController extends AbstractController
             // do anything else you need here, like send an email
             $this->authenticateUser($user);
 
-            return $this->redirectToRoute('admin');
+            return $this->redirectToRoute('payment', compact('plan'));
         }
 
         return $this->render('auth/register.html.twig', [

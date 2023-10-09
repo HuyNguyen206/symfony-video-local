@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Comment;
+use App\Entity\Enums\SubscriptionPrice;
+use App\Entity\Enums\SubscriptionType;
 use App\Entity\UserInteractiveVideo;
 use App\Entity\Video;
 use App\Repository\CommentRepository;
@@ -177,7 +179,9 @@ class VideoController extends AbstractController
     #[Route('/pricing', name: 'pricing')]
     public function pricing($id = null): Response
     {
-        return $this->render('pricing.html.twig');
+        $plans = SubscriptionType::cases();
+        $prices = SubscriptionPrice::cases();
+        return $this->render('pricing.html.twig', compact('prices', 'plans'));
     }
 
     #[Route('/videos/{id}/react/{isLike}', methods: ['GET'], name: 'video.react')]

@@ -7,9 +7,10 @@ use App\Entity\Subscription;
 use App\Entity\User;
 use Carbon\Carbon;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class SubscriptionFixture extends Fixture
+class SubscriptionFixture extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {
@@ -26,4 +27,10 @@ class SubscriptionFixture extends Fixture
         }
         $manager->flush();
     }
+
+    public function getDependencies()
+    {
+        return [UserFixture::class];
+    }
+
 }
