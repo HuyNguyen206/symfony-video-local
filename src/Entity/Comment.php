@@ -71,4 +71,9 @@ class Comment
 
         return $this;
     }
+
+    public function isOwnedBy(User $user)
+    {
+        return $this->getUser()->getId() === $user->getId();
+    }
 }

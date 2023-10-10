@@ -11,14 +11,14 @@
         <th>Video name</th>
         <th>Link</th>
 {#        <th>Category</th>#}
-{#        <th>Delete</th>#}
+        <th>Delete</th>
       </tr>
     </thead>
     <tbody>
 {% for video in videos %}
       <tr>
         <td><?=$v?></td>
-        <td>{{ video.title }}</td>
+        <td>{{ video.originFilename }}</td>
         <td><a target="_blank" href="{{ path('videos.show', {'id': video.id}) }}">go to video</a></td>
 {#        <td>#}
 {#            <form action="#" method="POST">#}
@@ -32,7 +32,7 @@
 {#                </select>#}
 {#            </form>#}
 {#        </td>#}
-{#        <td><a href="#" onclick="delete_video(event,2);"><i class="fas fa-trash"></i></a></td>#}
+        <td><a href="{{ path('videos.delete', {'id': video.id}) }}"><i class="fas fa-trash"></i></a></td>
       </tr>
     {% endfor %}
     </tbody>

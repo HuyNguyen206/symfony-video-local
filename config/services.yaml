@@ -4,7 +4,7 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-
+    videos_directory: '%kernel.project_dir%/public/uploads/videos'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -21,3 +21,13 @@ services:
             - '../src/Kernel.php'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Services\UploadService\LocalUpload:
+        arguments:
+            $storeDirectory: '%videos_directory%'
+
+    App\Services\UploadService\UploadInterface: '@App\Services\UploadService\VimeoUpload'
+
+when@dev:
+    services:
+        App\Services\UploadService\UploadInterface: '@App\Services\UploadService\LocalUpload'
+

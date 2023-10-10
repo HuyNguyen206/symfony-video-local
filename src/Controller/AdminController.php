@@ -4,10 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Enums\SubscriptionPrice;
+use App\Entity\Video;
+use App\Form\VideoFormType;
 use App\Repository\VideoRepository;
+use App\Services\UploadService\UploadInterface;
 use App\Utils\EagerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -70,18 +74,75 @@ class AdminController extends AbstractController
         return $this->render('admin/categories.html.twig', compact('results'));
     }
 
-    #[Route('/upload-video', name: 'videos.upload')]
-    public function upload(): Response
+    #[Route('/upload-video-locally', name: 'videos.upload_locally')]
+    public function uploadLocally(Request $request, UploadInterface $upload): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $video = new Video();
+        $form = $this->createForm(VideoFormType::class, $video);
+        $form->handleRequest($request);
 
-        return $this->render('admin/upload_video.html.twig');
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $videoFile */
+            $videoFile = $form->get('filename')->getData();
+
+            // this condition is needed because the 'brochure' field is not required
+            // so the PDF file must be processed only when a file is uploaded
+            if ($videoFile) {
+                $upload->upload($videoFile, $video);
+                $this->addFlash('success', 'The video has been uploaded successfully');
+
+            }
+
+            return $this->redirectToRoute('admin.videos.index');
+        }
+
+        return $this->render('admin/upload_video.html.twig', compact('form'));
+    }
+
+    #[Route('/upload-video-vimeo', name: 'videos.upload_to_vimeo')]
+    public function uploadToVimeo(Request $request, UploadInterface $upload): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $video = new Video();
+        $form = $this->createForm(VideoFormType::class, $video);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $videoFile */
+
+            $this->addFlash('success', 'Please implement logic to upload video to vimeo');
+            //Add logic to upload video to vimeo here
+
+            return $this->redirectToRoute('admin.videos.index');
+        }
+
+        return $this->render('admin/upload_video.html.twig', compact('form'));
+    }
+
+    #[Route('/delete-video/{id}', name: 'videos.delete')]
+    public function deleteVideo(Video $video, UploadInterface $upload)
+    {
+        $filepath = $this->getParameter('videos_directory').DIRECTORY_SEPARATOR.'/'.$video->getFilename();
+        try {
+            if (file_exists($filepath)) {
+                $upload->delete($filepath);
+            }
+            $this->entityManager->remove($video);
+            $this->entityManager->flush();
+            $this->addFlash('success', 'The video has been deleted');
+        } catch (\Throwable $ex) {
+            $this->addFlash('error', $ex->getMessage());
+
+        }
+
+        return $this->redirectToRoute('admin.videos.index');
     }
 
     #[Route('/videos/{page}', name: 'admin.videos.index')]
     public function listVideos(VideoRepository $videoRepository, int $page = 1): Response
     {
-        $videoQb = $videoRepository->createQueryBuilder('v')->orderBy('v.title', 'asc');
+        $videoQb = $videoRepository->createQueryBuilder('v')->orderBy('v.createdAt', 'desc');
 
         $videos = $videoRepository->paginate($page, $videoQb);
 

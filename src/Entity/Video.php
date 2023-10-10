@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: VideoRepository::class)]
 #[ORM\Table(name: 'videos')]
-#[ORM\Index(fields: ['title'], name: 'title_idx')]
+#[ORM\Index(fields: ['filename'], name: 'filename_idx')]
 class Video
 {
     use Timestamp;
@@ -18,12 +18,6 @@ class Video
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $title = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $path = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $duration = null;
@@ -44,6 +38,12 @@ class Video
     #[ORM\Column(options: ['default' => 0])]
     private int $dislikeCount = 0;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $filename = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $originFilename = null;
+
     protected const VIMEO_VIDEO_FOR_USER_NOT_LOGGED_IN = 'https://player.vimeo.com/video/non-exist';
     public function __construct()
     {
@@ -54,7 +54,7 @@ class Video
     public function getVimeoId(?User $user)
     {
         if ($user && $user->hasActiveSubscription()) {
-            return $this->path;
+            return 'https://source.unsplash.com/random/300×300';
         }
 
         return self::VIMEO_VIDEO_FOR_USER_NOT_LOGGED_IN;
@@ -63,30 +63,6 @@ class Video
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-
-        return $this;
-    }
-
-    public function getPath(): ?string
-    {
-        return $this->path;
-    }
-
-    public function setPath(string $path): static
-    {
-        $this->path = $path;
-
-        return $this;
     }
 
     public function getDuration(): ?int
@@ -193,6 +169,31 @@ class Video
     public function setDislikeCount(int $dislikeCount): static
     {
         $this->dislikeCount = $dislikeCount;
+
+        return $this;
+    }
+
+    public function getFilename(): ?string
+    {
+        return $this->filename;
+    }
+
+    public function setFilename(?string $filename): static
+    {
+        $this->filename = $filename;
+
+        return $this;
+    }
+
+
+    public function getOriginFilename(): ?string
+    {
+        return $this->originFilename;
+    }
+
+    public function setOriginFilename(?string $originFilename): static
+    {
+        $this->originFilename = $originFilename;
 
         return $this;
     }

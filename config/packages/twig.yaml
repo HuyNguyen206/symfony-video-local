@@ -1,6 +1,12 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
+    globals:
+        upload_route_name: "videos.upload_to_vimeo"
 
 when@test:
     twig:
         strict_variables: true
+when@dev:
+    twig:
+        globals:
+            upload_route_name: "videos.upload_locally"

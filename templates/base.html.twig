@@ -25,8 +25,16 @@
 <body class="text-center">
 <div class="container-fluid">
     {% block menu %}
-    {% include 'front/includes/_menu.html.twig' %}
+        {% include 'front/includes/_menu.html.twig' %}
     {% endblock %}
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
 
     {% block main %}
     {% endblock %}

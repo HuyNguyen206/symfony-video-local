@@ -2,7 +2,7 @@
 {% block main %}
 
 <br>
-<h1>{{ video.title }}</h1>
+<h1>{{ video.originFilename }}</h1>
 <div align="center" class="embed-responsive embed-responsive-16by9">
     <iframe class="" src="https://player.vimeo.com/video/289729765" frameborder="0" allowfullscreen></iframe>
 </div>
@@ -20,6 +20,9 @@
                 <h5 class="mt-0 mb-1"><b>{{ comment.user.name }}</b> <small class="text-muted">added a comment <small><b>{{ comment.createdAt|ago }}</b></small></small></h5>
               {{ comment.content }}
             </div>
+            {% if app.user and comment.isOwnedBy(app.user) %}
+            <a href="{{ path('videos.comments.delete', {'id': comment.id}) }}">Delete comment</a>
+            {% endif %}
         </li>
     </ul>
     <hr>

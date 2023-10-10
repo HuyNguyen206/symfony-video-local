@@ -26,7 +26,7 @@ class VideoController extends AbstractController
 
     }
 
-    #[Route('/videos/{name}/{page}/{categoryId?}', name: 'videos.index', defaults: ['page' => 1], methods: 'GET', requirements: ['page' => '\d+'])]
+    #[Route('/videos/{name}/{!page}/{categoryId?}', name: 'videos.index', defaults: ['page' => 1], methods: 'GET', requirements: ['page' => '\d+', 'categoryId' => '\d+'])]
     public function index(
         CategoryTreeFrontPage  $categoryTreeFrontPage,
         EagerService           $eagerService,
@@ -65,7 +65,7 @@ class VideoController extends AbstractController
             ->leftJoin('v.comments', 'comments')
             ->groupBy('v.id');
         if ($search = $request->query->get('search')) {
-            $videoQb->where('v.title like :search')
+            $videoQb->where('v.originalFilename like :search')
                     ->setParameter('search', '%' . trim($search) . '%');
         }
 
@@ -78,7 +78,7 @@ class VideoController extends AbstractController
             $videoQb->orderBy('v.likeCount', 'desc')
                 ->addOrderBy('v.dislikeCount', 'asc');
         } else {
-            $videoQb->orderBy('v.title', $sortMethod);
+            $videoQb->orderBy('v.originFilename', $sortMethod);
         }
 
         $videos = $videoRepository->paginate($page, $videoQb);
@@ -130,7 +130,7 @@ class VideoController extends AbstractController
             ->setParameter('video', $video)
             ->getQuery()
             ->getResult();
-//        dd($comments);
+
         return $this->render('video/show.html.twig', compact('comments', 'video'));
     }
 
@@ -158,6 +158,24 @@ class VideoController extends AbstractController
 
         $video->addComment($comment);
         $this->entityManager->persist($video);
+        $this->entityManager->flush();
+
+        return $this->redirect($route);
+    }
+
+    #[Route('videos/comments/{id}/delete', name: 'videos.comments.delete')]
+    public function deleteComment(Comment $comment, Request $request, ValidatorInterface $validator)
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_REMEMBERED');
+        $route = $request->headers->get('referer');
+
+        if (!$comment->isOwnedBy($this->getUser())) {
+            $this->addFlash('danger', 'You can not delete other\'s comment');
+
+            return $this->redirect($route);
+        }
+
+        $this->entityManager->remove($comment);
         $this->entityManager->flush();
 
         return $this->redirect($route);

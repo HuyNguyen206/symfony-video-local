@@ -11,7 +11,6 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
-use Faker\Generator;
 use Illuminate\Support\Arr;
 
 class VideoFixture extends Fixture implements DependentFixtureInterface
@@ -23,8 +22,8 @@ class VideoFixture extends Fixture implements DependentFixtureInterface
         foreach ($categories as $name => $category) {
             for ($i = 1; $i <= random_int(1, 30); $i++) {
                 $video = new Video();
-                $video->setTitle($faker->words(5, true));
-                $video->setPath('https://source.unsplash.com/random/300×300');
+                $video->setFilename($faker->words(5, true));
+                $video->setOriginFilename($faker->words(5, true));
                 $video->setDuration(random_int(5, 50));
                 $category->addVideo($video);
             }
