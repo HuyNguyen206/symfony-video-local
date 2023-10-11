@@ -26,6 +26,9 @@ services:
             $storeDirectory: '%videos_directory%'
 
     App\Services\UploadService\UploadInterface: '@App\Services\UploadService\VimeoUpload'
+    App\EventListener\VideoListener:
+        tags:
+            - {name: doctrine.event_listener, event: prePersist, method: sendEmail}
 
 when@dev:
     services:
