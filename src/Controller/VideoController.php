@@ -10,6 +10,7 @@ use App\Entity\UserInteractiveVideo;
 use App\Entity\Video;
 use App\Repository\CommentRepository;
 use App\Repository\VideoRepository;
+use App\Services\Cache\CacheInterface;
 use App\Utils\CategoryTreeFrontPage;
 use App\Utils\EagerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +19,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
+#[Route(
+    path: '/{_locale}/',
+    requirements: [
+        '_locale' => 'fr|de|en',
+    ]
+)]
 class VideoController extends AbstractController
 {
     public function __construct(protected EntityManagerInterface $entityManager)
@@ -36,6 +44,7 @@ class VideoController extends AbstractController
         string $name,
         int                    $page,
         ?int                   $categoryId,
+        CacheInterface $cache
     ): Response
     {
 //        $videos = $category->getVideos();
@@ -46,65 +55,86 @@ class VideoController extends AbstractController
 //         $categoryTreeFrontPage->buildTree($category);
 //
 //        $eagerService = new EagerService();
-        $maxNestedCategory = 5;
-        $nestedCategory = '';
-        for ($i = 1; $i <= $maxNestedCategory; $i++) {
-            $nestedCategory .= $i !== $maxNestedCategory ? 'subCategories.' : 'subCategories';
-        }
-        $sortMethod = $request->query->get('sort_by', 'asc');
-        $qb = $eagerService->resolveIncludes(Category::class, 'cat', includes: [$nestedCategory, 'parentCategory']);
-        if ($categoryId) {
-            $category = $qb->where('cat.id = :categoryId')
-                ->setParameter('categoryId', $categoryId)
-                ->getQuery()
-                ->getSingleResult();
-        }
+        return $cache->cache->get('videoList' .$categoryId . $page . $request->get('sortBy'), function (ItemInterface $item) use
+        (
+            $request,
+            $eagerService,
+            $categoryId,
+            $entityManager,
+            $videoRepository,
+            $page
+        ) {
 
-        $videoQb = $entityManager->getRepository(Video::class)->createQueryBuilder('v')
-            ->addSelect('count(DISTINCT(comments.id)) as commentCount')
-            ->leftJoin('v.comments', 'comments')
-            ->groupBy('v.id');
-        if ($search = $request->query->get('search')) {
-            $videoQb->where('v.originalFilename like :search')
+            $item->expiresAfter(300);
+            $item->tag('video');
+
+            $maxNestedCategory = 5;
+            $nestedCategory = '';
+            for ($i = 1; $i <= $maxNestedCategory; $i++) {
+                $nestedCategory .= $i !== $maxNestedCategory ? 'subCategories.' : 'subCategories';
+            }
+            $sortMethod = $request->query->get('sort_by', 'asc');
+            $qb = $eagerService->resolveIncludes(Category::class, 'cat', includes: [$nestedCategory, 'parentCategory']);
+            if ($categoryId) {
+                $category = $qb->where('cat.id = :categoryId')
+                    ->setParameter('categoryId', $categoryId)
+                    ->getQuery()
+                    ->getSingleResult();
+            }
+
+            $videoQb = $entityManager->getRepository(Video::class)->createQueryBuilder('v')
+                ->addSelect('count(DISTINCT(comments.id)) as commentCount')
+                ->leftJoin('v.comments', 'comments')
+                ->groupBy('v.id');
+            if ($search = $request->query->get('search')) {
+                $videoQb->where('v.originalFilename like :search')
                     ->setParameter('search', '%' . trim($search) . '%');
-        }
+            }
 
-        if ($categoryId) {
-            $videoQb->where('v.category = :category')
-                ->setParameter('category', $category);
-        }
+            if ($categoryId) {
+                $videoQb->where('v.category = :category')
+                    ->setParameter('category', $category);
+            }
 
-        if ($sortMethod === 'rating') {
-            $videoQb->orderBy('v.likeCount', 'desc')
-                ->addOrderBy('v.dislikeCount', 'asc');
-        } else {
-            $videoQb->orderBy('v.originFilename', $sortMethod);
-        }
+            if ($sortMethod === 'rating') {
+                $videoQb->orderBy('v.likeCount', 'desc')
+                    ->addOrderBy('v.dislikeCount', 'asc');
+            } else {
+                $videoQb->orderBy('v.originFilename', $sortMethod);
+            }
 
-        $videos = $videoRepository->paginate($page, $videoQb);
-        $videoIds = collect($videos)->map(function ($video) {
-            return $video[0]->getId();
-        })->toArray();
+            $videos = $videoRepository->paginate($page, $videoQb);
+            $videoIds = collect($videos)->map(function ($video) {
+                return $video[0]->getId();
+            })->toArray();
 
 
-        $videoInteractions = collect($entityManager->getRepository(UserInteractiveVideo::class)
-            ->createQueryBuilder('uiv')
-            ->select('v.id',
-                'SUM(case when uiv.user = :userId and uiv.type = 1 then 1 else 0 end) as isLikeVideo',
-                'SUM(case when uiv.user = :userId and uiv.type = 0 then 1 else 0 end) as isDislikeVideo',
-            )
-            ->leftJoin('uiv.video', 'v')
-            ->where('uiv.video in (:videoIds)')
-            ->setParameter('videoIds', $videoIds)
-            ->setParameter('userId', $this->getUser()?->getId())
-            ->groupBy('v.id')
-            ->getQuery()->getResult())->keyBy('id');
+            $videoInteractions = collect($entityManager->getRepository(UserInteractiveVideo::class)
+                ->createQueryBuilder('uiv')
+                ->select('v.id',
+                    'SUM(case when uiv.user = :userId and uiv.type = 1 then 1 else 0 end) as isLikeVideo',
+                    'SUM(case when uiv.user = :userId and uiv.type = 0 then 1 else 0 end) as isDislikeVideo',
+                )
+                ->leftJoin('uiv.video', 'v')
+                ->where('uiv.video in (:videoIds)')
+                ->setParameter('videoIds', $videoIds)
+                ->setParameter('userId', $this->getUser()?->getId())
+                ->groupBy('v.id')
+                ->getQuery()->getResult())->keyBy('id');
 
-        $videosWithCount = collect($videos->getItems())->map(function ($video) use ($videoInteractions) {
-            $video += $videoInteractions[$video[0]->getId()];
-            return $video;
+            $videosWithCount = collect($videos->getItems())->map(function ($video) use ($videoInteractions) {
+                $video += $videoInteractions[$video[0]->getId()];
+                return $video;
+            });
+            $videos->setItems($videosWithCount->all());
+            $nameCurrentCategory = isset($category) ? $category->getName() : 'Search result';
+
+            return $this->render('video/index.html.twig', compact('nameCurrentCategory', 'videos') + ['category' => $category ?? null]);
+
         });
-        $videos->setItems($videosWithCount->all());
+
+//        dd($videosCache);
+
 //        $s = $categoryTreeFrontPage->entityManager
 //            ->getRepository(Category::class)
 //            ->createQueryBuilder('cat')
@@ -115,9 +145,9 @@ class VideoController extends AbstractController
 //            ->leftJoin('cat.videos', 'videos')
 //            ->getQuery()
 //            ->getResult();
-        $nameCurrentCategory = isset($category) ? $category->getName() : 'Search result';
-
-        return $this->render('video/index.html.twig', compact('nameCurrentCategory', 'videos') + ['category' => $category ?? null]);
+//        $nameCurrentCategory = isset($category) ? $category->getName() : 'Search result';
+//
+//        return $this->render('video/index.html.twig', compact('nameCurrentCategory', 'videos') + ['category' => $category ?? null]);
     }
 
     #[Route('/videos/{id}', name: 'videos.show', requirements: ['id' => '\d+'])]

@@ -26,11 +26,12 @@ services:
             $storeDirectory: '%videos_directory%'
 
     App\Services\UploadService\UploadInterface: '@App\Services\UploadService\VimeoUpload'
-    App\EventListener\VideoListener:
-        tags:
-            - {name: doctrine.event_listener, event: prePersist, method: sendEmail}
+#    App\EventListener\VideoListener:
+#        tags:
+#            - {name: 'doctrine.orm.entity_listener', event: 'prePersist', entity: 'App\Entity\Video', method: 'sendEmail'}
 
 when@dev:
     services:
         App\Services\UploadService\UploadInterface: '@App\Services\UploadService\LocalUpload'
+        App\Services\Cache\CacheInterface: '@App\Services\Cache\RedisCache'
 

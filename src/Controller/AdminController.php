@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('admin')]
@@ -101,7 +102,7 @@ class AdminController extends AbstractController
     }
 
     #[Route('/upload-video-vimeo', name: 'videos.upload_to_vimeo')]
-    public function uploadToVimeo(Request $request, UploadInterface $upload): Response
+    public function uploadToVimeo(Request $request, UploadInterface $upload, TranslatorInterface $translator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         $video = new Video();
@@ -111,7 +112,7 @@ class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile $videoFile */
 
-            $this->addFlash('success', 'Please implement logic to upload video to vimeo');
+            $this->addFlash('success', $translator->trans('Please implement logic to upload video to vimeo'));
             //Add logic to upload video to vimeo here
 
             return $this->redirectToRoute('admin.videos.index');

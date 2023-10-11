@@ -2,6 +2,7 @@
 
 namespace App\Services\UploadService;
 
+use App\Entity\Category;
 use App\Entity\Video;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -43,6 +44,7 @@ class LocalUpload implements UploadInterface
         // updates the 'brochureFilename' property to store the PDF file name
         // instead of its contents
         $video->setFilename($newFilename);
+//        $video->setCategory($this->entityManager->getRepository(Category::class)->findOneBy([]));
         $video->setOriginFilename($originalFilename);
         $this->entityManager->persist($video);
         $this->entityManager->flush();
