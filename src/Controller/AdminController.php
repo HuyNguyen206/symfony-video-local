@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Enums\SubscriptionPrice;
+use App\Entity\Subscription;
 use App\Entity\Video;
 use App\Form\VideoFormType;
+use App\Repository\SubscriptionRepository;
 use App\Repository\VideoRepository;
 use App\Services\UploadService\UploadInterface;
 use App\Utils\EagerService;
@@ -24,13 +26,31 @@ class AdminController extends AbstractController
 {
     public function __construct(
         protected EntityManagerInterface $entityManager,
-        protected ValidatorInterface $validator
-    ) {
+        protected ValidatorInterface     $validator,
+        protected SubscriptionRepository $repository
+    )
+    {
     }
 
     #[Route('/', name: 'admin')]
     public function index(SessionInterface $session): Response
     {
+        $video = $this->entityManager->getRepository(Video::class)->find(1);
+        $video->setDuration(60);
+        $this->entityManager->persist($video);
+        $this->entityManager->flush();
+
+
+        $columnName = 'free_plan_used';
+        $this->entityManager->createQueryBuilder()
+            ->update(Subscription::class, 's')
+            ->set("s.$columnName", ':updatedValue')
+            ->where("s.id = :id")
+            ->setParameter('updatedValue', false)
+            ->setParameter('id', 2)
+            ->getQuery()->execute()
+            ;
+
         $subscription = $this->getUser()->getSubscription();
         return $this->render('admin/my_profile.html.twig', compact('subscription'));
     }
@@ -124,7 +144,7 @@ class AdminController extends AbstractController
     #[Route('/delete-video/{id}', name: 'videos.delete')]
     public function deleteVideo(Video $video, UploadInterface $upload)
     {
-        $filepath = $this->getParameter('videos_directory').DIRECTORY_SEPARATOR.'/'.$video->getFilename();
+        $filepath = $this->getParameter('videos_directory') . DIRECTORY_SEPARATOR . '/' . $video->getFilename();
         try {
             if (file_exists($filepath)) {
                 $upload->delete($filepath);
